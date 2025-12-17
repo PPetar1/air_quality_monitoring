@@ -1,4 +1,4 @@
-🌍 Air Quality Data Pipeline
+Air Quality Data Pipeline
 
 A hands-on data engineering project that demonstrates modern ETL/ELT pipelines using https://docs.openaq.org/about/about. Built to showcase data engineering skills with a production-ready stack using entirely free and open-source tools.
 
@@ -18,6 +18,7 @@ This is a learning portfolio project that implements a complete data pipeline fr
 
 Current Phase: 🟡 Setup & Initial Extraction  
 Next Phase: Transformations with dbt
+
 
 Note: This project is actively being developed as a learning exercise. The codebase will evolve as features are implemented.
 
