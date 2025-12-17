@@ -1,0 +1,47 @@
+# .gitignore
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+env.bak/
+venv.bak/
+
+# IDE
+*.swp
+*.swo
+
+# Data files
+data/
+*.parquet
+*.csv
+*.json
+*.db
+*.duckdb
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Virtual Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Jupyter
+.ipynb_checkpoints/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
