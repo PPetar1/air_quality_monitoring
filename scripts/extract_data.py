@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 import pandas as pd
-import requests
-import time
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
 from pathlib import Path
-import sys
 from openaq import OpenAQ
 
 API_KEY = "28167e861b5b17b41ef6f9e4ab183790ae37b8df75697bbb95212edde98e215d"
