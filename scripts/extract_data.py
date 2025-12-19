@@ -6,7 +6,9 @@ import pandas as pd
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
+import os
 
+SCRIPT_NAME = os.path.basename(__file__)
 API_KEY = "28167e861b5b17b41ef6f9e4ab183790ae37b8df75697bbb95212edde98e215d"
 COUNTRIES = [132, 110, 103, 80, 75, 65, 131, 62, 74, 97, 104] #ids of all the balkan countries
 BATCH_SIZE = 7
@@ -50,7 +52,7 @@ def save_data(df, output_dir="data/raw", prefix="", suffix=""):
     
     return parquet_file
 
-async def fetch_and_save_data_batch(output_dir, async_func, batch_size=BATCH_SIZE, *args, **kwargs) :
+async def fetch_and_save_data(output_dir, async_func, batch_size=1, *args, **kwargs) :
     results = True
     page_num = 0
 
@@ -77,34 +79,14 @@ async def fetch_and_save_data_batch(output_dir, async_func, batch_size=BATCH_SIZ
                 df = pd.json_normalize(data['results'])
                 save_data(df, output_dir)
 
-async def fetch_and_save_data(output_dir, async_func, *args, **kwargs):
-    results = True
-    page_num = 0
-
-    kwargs['limit'] = 1000
-    
-    while results:
-        page_num += 1
-        kwargs['page'] = page_num
-
-        await RATE_LIMITER.acquire()
-
-        response = await async_func(*args, **kwargs)
-        
-        RATE_LIMITER.release()
-        
-        if len(response.results) == 0:
-            results = False
-        else:
-            data = response.dict()
-            df = pd.json_normalize(data['results'])
-            save_data(df, output_dir)
-        
 async def main():
+    start_time = datetime.now()
+    print("Script " + SCRIPT_NAME + " starting execution at: " + start_time.strftime("%H:%M:%S"))
+    
     client = AsyncOpenAQ(api_key=API_KEY)
     tasks = []
     for _ in range(10):
-        tasks.append(fetch_and_save_data_batch(SAVE_PATH + "locations", client.locations.list, countries_id = COUNTRIES))
+        tasks.append(fetch_and_save_data(SAVE_PATH + "locations", client.locations.list, batch_size=BATCH_SIZE, countries_id = COUNTRIES))
 
     for _ in range(5):
         tasks.append(fetch_and_save_data(SAVE_PATH + "locations", client.locations.list, countries_id = COUNTRIES))
@@ -113,5 +95,16 @@ async def main():
 
     await client.close()
 
+    end_time = datetime.now()
+    print("Script " + SCRIPT_NAME + " finished execution at: " + end_time.strftime("%H:%M:%S") + "\nExecution time: " + str((end_time - start_time).total_seconds()) + "s")
+
 if __name__ == "__main__":
     asyncio.run(main())
+
+
+# TODO: 
+#       error handling, 
+#       saving location ids (and later sensor ids) to use for other extraction, 
+#       extraction of all data,
+#       logging,
+#       documentation
