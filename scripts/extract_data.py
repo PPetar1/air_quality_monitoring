@@ -7,11 +7,15 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 import os
+import logging
+
+logging.getLogger("transport").setLevel(logging.CRITICAL)
 
 SCRIPT_NAME = os.path.basename(__file__)
 API_KEY = "28167e861b5b17b41ef6f9e4ab183790ae37b8df75697bbb95212edde98e215d"
 COUNTRIES = [132, 110, 103, 80, 75, 65, 131, 62, 74, 97, 104] #ids of all the balkan countries
-BATCH_SIZE = 7
+BATCH_SIZE = 5
+MAX_RETRY = 3
 API_LIMIT_PER_MINUTE = 60
 SAVE_PATH = "data/raw/"
 
@@ -52,7 +56,7 @@ def save_data(df, output_dir="data/raw", prefix="", suffix=""):
     
     return parquet_file
 
-async def fetch_and_save_data(output_dir, async_func, batch_size=1, *args, **kwargs) :
+async def fetch_and_save_data(output_dir, async_func, batch_size=1, *args, **kwargs):
     results = True
     page_num = 0
 
@@ -66,10 +70,15 @@ async def fetch_and_save_data(output_dir, async_func, batch_size=1, *args, **kwa
             page_num += 1
             kwargs['page'] = page_num
 
-            tasks.append(async_func(*args, **kwargs))
+            tasks.append(execute_with_retry(async_func, *args, **kwargs))
         
         async for task in asyncio.as_completed(tasks):
-            response = task.result() 
+            try:
+                response = task.result() 
+            except Exception as err:
+                print("A task has failed " + str(MAX_RETRY + 1) + " times. Error message: " + str(err))
+                continue
+                
             RATE_LIMITER.release()
 
             if len(response.results) == 0:
@@ -79,31 +88,49 @@ async def fetch_and_save_data(output_dir, async_func, batch_size=1, *args, **kwa
                 df = pd.json_normalize(data['results'])
                 save_data(df, output_dir)
 
-async def main():
-    start_time = datetime.now()
-    print("Script " + SCRIPT_NAME + " starting execution at: " + start_time.strftime("%H:%M:%S"))
+async def execute_with_retry(async_func, max_retry=MAX_RETRY, *args, **kwargs):
+    retry_count = 0
+    while True:
+        try:
+            if retry_count != 0:
+                await RATE_LIMITER.acquire()
+            return await async_func(*args, **kwargs)
+        except Exception as err:
+            RATE_LIMITER.release()
+            if retry_count < max_retry:
+                retry_count += 1
+            else:
+                raise err
     
-    client = AsyncOpenAQ(api_key=API_KEY)
-    tasks = []
-    for _ in range(10):
-        tasks.append(fetch_and_save_data(SAVE_PATH + "locations", client.locations.list, batch_size=BATCH_SIZE, countries_id = COUNTRIES))
+async def main():
+    try:
+        start_time = datetime.now()
+        print("Script " + SCRIPT_NAME + " starting execution at: " + start_time.strftime("%H:%M:%S"))
+        
+        client = AsyncOpenAQ(api_key=API_KEY)
+        
+        tasks = []
+        for _ in range(10):
+            tasks.append(fetch_and_save_data(SAVE_PATH + "locations", client.locations.list, batch_size=BATCH_SIZE, countries_id = COUNTRIES))
 
-    for _ in range(5):
-        tasks.append(fetch_and_save_data(SAVE_PATH + "locations", client.locations.list, countries_id = COUNTRIES))
+        for _ in range(5):
+            tasks.append(fetch_and_save_data(SAVE_PATH + "locations", client.locations.list, countries_id = COUNTRIES))
 
-    await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks)
 
-    await client.close()
+        await client.close()
 
-    end_time = datetime.now()
-    print("Script " + SCRIPT_NAME + " finished execution at: " + end_time.strftime("%H:%M:%S") + "\nExecution time: " + str((end_time - start_time).total_seconds()) + "s")
+        end_time = datetime.now()
+        print("Script " + SCRIPT_NAME + " finished execution at: " + end_time.strftime("%H:%M:%S") + "\nExecution time: " + str((end_time - start_time).total_seconds()) + "s")
+    
+    except Exception as err:
+        end_time = datetime.now()
+        print("CRITICAL\nScript " + SCRIPT_NAME + " encountered an unrecoverable error at: " + end_time.strftime("%H:%M:%S") +  "\nError message: ||| " + str(err) + " |||\nExecution time: " + str((end_time - start_time).total_seconds()) + "s")
 
 if __name__ == "__main__":
     asyncio.run(main())
 
-
 # TODO: 
-#       error handling, 
 #       saving location ids (and later sensor ids) to use for other extraction, 
 #       extraction of all data,
 #       logging,
