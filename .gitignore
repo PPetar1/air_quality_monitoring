@@ -17,11 +17,6 @@ venv.bak/
 
 # Data files
 data/
-*.parquet
-*.csv
-*.json
-*.db
-*.duckdb
 
 # Logs
 *.log
