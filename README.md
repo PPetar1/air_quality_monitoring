@@ -6,13 +6,14 @@ A hands-on data engineering project that demonstrates modern ETL/ELT pipelines u
 **What This Project Is**
 
 This is a learning portfolio project that implements a complete data pipeline from extraction to visualization, simulating real-world data engineering scenarios. It focuses on:
-    Real data: Live air quality metrics from the OpenAQ API  
 
-    Modern stack: Python, Airflow, dbt, Grafana?  
+*Real data:* Live air quality metrics from the OpenAQ API
 
-    Production patterns: Incremental loads, data quality checks  
+*Modern stack:* Python, Airflow, dbt, Grafana?  
 
-    Free tools: Everything runs locally or on free cloud tiers  
+*Production patterns:* Incremental loads, data quality checks  
+
+*Free tools:* Everything runs locally or on free cloud tiers  
 
 
 **Installation**  
@@ -41,6 +42,8 @@ Windows
 ```
     TODO  
 ```
+
+After this you can access airflow by visiting http://localhost:8080/
 
 You can run individual scripts using 
 ```
