@@ -7,22 +7,25 @@ A hands-on data engineering project that demonstrates modern ETL/ELT pipelines u
 
 This is a learning portfolio project that implements a complete data pipeline from extraction to visualization, simulating real-world data engineering scenarios. It focuses on:
 
-Real data: Live air quality metrics from the OpenAQ API  
+    Real data: Live air quality metrics from the OpenAQ API  
 
-Modern stack: Python, Airflow, dbt, Grafana?  
+    Modern stack: Python, Airflow, dbt, Grafana?  
 
-Production patterns: Incremental loads, data quality checks  
+    Production patterns: Incremental loads, data quality checks  
 
-Free tools: Everything runs locally or on free cloud tiers  
+    Free tools: Everything runs locally or on free cloud tiers  
 
 
 **Installation**  
 Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.org/python/download-and-install-python-3-latest-version/  
 
 Clone the project with
-    git clone https://github.com/PPetar1/air_quality_monitoring#
+''' 
+   git clone https://github.com/PPetar1/air_quality_monitoring#
+'''
 
 Linux/macOS
+'''
     python3 -m venv .venv
     source .venv/bin/activate 
     pip install -r requirements.txt  
@@ -33,12 +36,17 @@ Linux/macOS
     pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
     airflow db migrate
     airflow api-server --port 8080
+'''
 
 Windows  
+'''
     TODO  
+'''
 
-You can run individual scripts using python3 scripts/script_name.py  
-
+You can run individual scripts using 
+'''
+    python3 scripts/script_name.py  
+'''
 
 **Project Status**
 
