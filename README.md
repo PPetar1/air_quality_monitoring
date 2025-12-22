@@ -6,7 +6,6 @@ A hands-on data engineering project that demonstrates modern ETL/ELT pipelines u
 **What This Project Is**
 
 This is a learning portfolio project that implements a complete data pipeline from extraction to visualization, simulating real-world data engineering scenarios. It focuses on:
-
     Real data: Live air quality metrics from the OpenAQ API  
 
     Modern stack: Python, Airflow, dbt, Grafana?  
@@ -21,7 +20,7 @@ Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.
 
 Clone the project with
 ``` 
-   git clone https://github.com/PPetar1/air_quality_monitoring#
+   git clone https://github.com/PPetar1/air_quality_monitoring
 ```
 
 Linux/macOS
