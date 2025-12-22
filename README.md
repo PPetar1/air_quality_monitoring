@@ -17,8 +17,22 @@ This is a learning portfolio project that implements a complete data pipeline fr
 
 
 **Installation**
- 
+Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.org/python/download-and-install-python-3-latest-version/
+
+Linux/macOS
+python3 -m venv .venv
+source .venv/bin/activate 
 pip install -r requirements.txt  
+export AIRFLOW_HOME=$(pwd)/airflow
+AIRFLOW_VERSION=3.1.3
+PYTHON_VERSION="$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
+airflow db migrate
+airflow api-server --port 8080
+
+Windows
+TODO
 
 You can run individual scripts using python3 scripts/script_name.py  
 
