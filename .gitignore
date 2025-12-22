@@ -40,3 +40,5 @@ Thumbs.db
 dbt/target/
 dbt/dbt_packages/
 dbt/logs/
+
+.ignore
