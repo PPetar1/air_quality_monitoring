@@ -4,7 +4,7 @@ import asyncio
 from openaq import AsyncOpenAQ
 import pandas as pd
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import os
 import logging
@@ -85,7 +85,9 @@ async def fetch_data_and_save(output_dir, job_name, async_func, *args, **kwargs)
     if 'locations_id' in kwargs:
         df['location_id'] = kwargs['locations_id']
 
-    
+    extraction_timestamp = datetime.now(timezone.utc)
+    df['extraction_timestamp'] = extraction_timestamp
+
     save_data(df, output_dir, prefix=job_name)
 
 
@@ -124,6 +126,9 @@ async def fetch_paged_data_and_save(output_dir, job_name, async_func, batch_size
                 if 'sensors_id' in kwargs:
                     df['sensor_id'] = kwargs['sensors_id']
             
+                extraction_timestamp = datetime.now(timezone.utc)
+                df['extraction_timestamp'] = extraction_timestamp
+
                 save_data(df, output_dir, prefix=job_name)
 
         if error_count == batch_size:
