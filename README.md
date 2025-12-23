@@ -54,8 +54,8 @@ You can run individual scripts using
 
 **Project Status**
 
-Current Phase: Transformations with dbt
-Next Phase: Scheduling with Airflow
+Current Phase: Transformations with dbt  
+Next Phase: Scheduling with Airflow  
 
 
 Note: This project is actively being developed as a learning exercise. The codebase will evolve as features are implemented.
