@@ -17,6 +17,7 @@ This is a learning portfolio project that implements a complete data pipeline fr
 
 
 **Installation**  
+
 Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.org/python/download-and-install-python-3-latest-version/  
 
 Clone the project with
@@ -49,6 +50,7 @@ You can run individual scripts using
 ```
     python3 scripts/script_name.py  
 ```
+
 
 **Project Status**
 

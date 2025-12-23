@@ -54,14 +54,21 @@ def save_data(df, output_dir="data/raw", prefix="", suffix=""):
     output_path.mkdir(parents=True, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
-    
-    filename = f"{prefix}{timestamp}{suffix}.parquet"
+
+    prefix_ = ""
+    suffix_ = ""
+    if prefix != "":
+        prefix_ = "_"
+    if suffix != "":
+        suffix_ = "_"
+
+    filename = f"{prefix}{prefix_}{timestamp}{suffix_}{suffix}.parquet"
     parquet_file = output_path / filename
     df.to_parquet(parquet_file, index=False)
     
     return parquet_file
 
-async def fetch_data_and_save(output_dir, async_func, *args, **kwargs):
+async def fetch_data_and_save(output_dir, job_name, async_func, *args, **kwargs):
     await RATE_LIMITER.acquire()
     
     try:
@@ -79,10 +86,10 @@ async def fetch_data_and_save(output_dir, async_func, *args, **kwargs):
         df['location_id'] = kwargs['locations_id']
 
     
-    save_data(df, output_dir)
+    save_data(df, output_dir, prefix=job_name)
 
 
-async def fetch_paged_data_and_save(output_dir, async_func, batch_size=1, *args, **kwargs):
+async def fetch_paged_data_and_save(output_dir, job_name, async_func, batch_size=1, *args, **kwargs):
     results = True
     page_num = 0
 
@@ -117,7 +124,7 @@ async def fetch_paged_data_and_save(output_dir, async_func, batch_size=1, *args,
                 if 'sensors_id' in kwargs:
                     df['sensor_id'] = kwargs['sensors_id']
             
-                save_data(df, output_dir)
+                save_data(df, output_dir, prefix=job_name)
 
         if error_count == batch_size:
             break
@@ -149,22 +156,22 @@ async def main():
         client = AsyncOpenAQ(api_key=API_KEY)
         
         tasks = []
-        tasks.append(fetch_paged_data_and_save(SAVE_PATH + "location", fetch_and_save_ids, api_call=client.locations.list, id_list=LOCATION_IDS, batch_size=BATCH_SIZE, countries_id=COUNTRY_IDS))
-        tasks.append(fetch_paged_data_and_save(SAVE_PATH + "country", client.countries.list, batch_size=BATCH_SIZE))
-        tasks.append(fetch_paged_data_and_save(SAVE_PATH + "parameters", client.parameters.list, batch_size=BATCH_SIZE))
+        tasks.append(fetch_paged_data_and_save(SAVE_PATH + "location/new", "location", fetch_and_save_ids, api_call=client.locations.list, id_list=LOCATION_IDS, batch_size=BATCH_SIZE, countries_id=COUNTRY_IDS))
+        tasks.append(fetch_paged_data_and_save(SAVE_PATH + "country/new", "country", client.countries.list, batch_size=BATCH_SIZE))
+        tasks.append(fetch_paged_data_and_save(SAVE_PATH + "parameter/new", "parameter", client.parameters.list, batch_size=BATCH_SIZE))
      
         await asyncio.gather(*tasks)
 
 
         tasks = []
         for locations_id in LOCATION_IDS:
-            tasks.append(fetch_data_and_save(SAVE_PATH + "sensor", fetch_and_save_ids, api_call=client.locations.sensors, id_list=SENSOR_IDS, locations_id=locations_id))
+            tasks.append(fetch_data_and_save(SAVE_PATH + "sensor/new", "sensor", fetch_and_save_ids, api_call=client.locations.sensors, id_list=SENSOR_IDS, locations_id=locations_id))
 
         await asyncio.gather(*tasks)
 
         tasks = []
         for sensors_id in SENSOR_IDS:
-            tasks.append(fetch_paged_data_and_save(SAVE_PATH + "measurement", client.measurements.list, sensors_id=sensors_id, datetime_from=DATETIME_FROM))
+            tasks.append(fetch_paged_data_and_save(SAVE_PATH + "measurement/new", "measurement", client.measurements.list, sensors_id=sensors_id, datetime_from=DATETIME_FROM))
 
         await asyncio.gather(*tasks)
 

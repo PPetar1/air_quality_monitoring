@@ -1,0 +1,9 @@
+# dbt/profiles.yml
+
+air_quality_monitoring:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: '../data/warehouse.db'
+      schema: 'dbt'
