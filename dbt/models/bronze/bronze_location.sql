@@ -1,4 +1,4 @@
-{{ config(materialized='incremental', unique_key='id', schema='bronze') }}
+{{ config(materialized='incremental', alias='location', unique_key='id', schema='bronze') }}
 
 select 
 	id,
@@ -24,13 +24,12 @@ select
 	"datetime_first.local" as datetime_first_local,
 	"datetime_last.utc" as datetime_last_utc,
 	"datetime_last.local" as datetime_last_local,
-	extraction_timestamp,
 	current_timestamp as dbt_load_timestamp
 
 from read_parquet('../data/raw/location/new/*.parquet')
 
 {% if is_incremental() %}
 
-where extraction_timestamp >= (select coalesce(max(extraction_timestamp), '1900-01-01') from {{ this }})
+where extraction_timestamp >= (select coalesce(max(dbt_load_timestamp), '1900-01-01') from {{ this }})
 
 {% endif %}

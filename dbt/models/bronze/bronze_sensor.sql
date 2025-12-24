@@ -1,4 +1,4 @@
-{{ config(materialized='incremental', unique_key='id', schema='bronze') }}
+{{ config(materialized='incremental', alias='sensor', unique_key='id', schema='bronze') }}
 
 select 
 	id,
@@ -36,13 +36,12 @@ select
 	"summary.avg" as summary_avg,
 	"summary.sd" as summary_sd,
 	location_id,
-	extraction_timestamp,
 	current_timestamp as dbt_load_timestamp
 
 from read_parquet('../data/raw/sensor/new/*.parquet', union_by_name=true) 
 
 {% if is_incremental() %}
 
-where extraction_timestamp >= (select coalesce(max(extraction_timestamp), '1900-01-01') from {{ this }})
+where extraction_timestamp >= (select coalesce(max(dbt_load_timestamp), '1900-01-01') from {{ this }})
 
 {% endif %}
