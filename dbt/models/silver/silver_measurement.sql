@@ -27,7 +27,7 @@ select distinct
 	sensor_id,
 	current_timestamp as dbt_load_timestamp
 
-from dbt_bronze.measurement 
+from {{ ref('bronze_measurement') }}
 
 {% if is_incremental() %}
 

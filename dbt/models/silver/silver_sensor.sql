@@ -38,7 +38,7 @@ select
 	location_id,
 	current_timestamp as dbt_load_timestamp
 
-from dbt_bronze.sensor 
+from {{ ref('bronze_sensor') }}
 
 {% if is_incremental() %}
 

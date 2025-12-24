@@ -8,7 +8,7 @@ select
 	description,
 	current_timestamp as dbt_load_timestamp
 
-from dbt_bronze.parameter 
+from {{ ref('bronze_parameter') }}
 
 {% if is_incremental() %}
 

@@ -9,7 +9,7 @@ select
        	parameters,
 	current_timestamp as dbt_load_timestamp
 
-from dbt_bronze.country
+from {{ ref('bronze_country') }}
 
 {% if is_incremental() %}
 

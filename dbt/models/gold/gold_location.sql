@@ -26,7 +26,7 @@ select
 	datetime_last_local,
 	current_timestamp as dbt_load_timestamp
 
-from dbt_silver.location 
+from {{ ref('silver_location') }}
 
 {% if is_incremental() %}
 
