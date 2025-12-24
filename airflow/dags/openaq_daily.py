@@ -7,6 +7,7 @@ from pathlib import Path
 import os
 import sys
 import aiologic
+import duckdb
 
 from airflow.sdk import dag, task
 
@@ -212,6 +213,17 @@ def openaq_daily():
     def close_connection():
         asyncio.run(client.close())
 
+    @task()
+    def create_dwh():
+        dwh_path = Path("../data/warehouse.db")
+        if !Path.exists(dwh_path):
+            parent = Path('../data/')  
+            parent.mkdir(exist_ok=True)
+
+            conn = duckdb.connect('../data/warehouse.db')
+
+            conn.close()
+
     @task.bash()
     def dbt_run():
         return "cd ../dbt && dbt run"
@@ -227,10 +239,13 @@ def openaq_daily():
     sensor_ids = fetch_sensor(global_vars["SAVE_PATH"], global_vars["CLIENT"], global_vars["RATE_LIMITER"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"], location_ids)
     fetch_measurement = fetch_measurement(global_vars["SAVE_PATH"], global_vars["CLIENT"], global_vars["RATE_LIMITER"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"], sensor_ids)
     close_connection = close_connection()
+
+    create_dwh = create_dwh()
     dbt_run = dbt_run()
+    
     archive_files = archive_files()
 
-    [fetch_parameter, fetch_country, fetch_measurement] >> close_connection >> dbt_run >> archive_files
+    [fetch_parameter, fetch_country, fetch_measurement] >> close_connection >> create_dwh >> dbt_run >> archive_files
 
 openaq_daily()
 
