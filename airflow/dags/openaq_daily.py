@@ -148,49 +148,51 @@ async def fetch_and_save_ids(api_call, id_list, *args, **kwargs):
     tags=["openaq"],
 )
 def openaq_daily():
+    API_LIMIT_PER_MINUTE = 60
+    RATE_LIMITER = RateLimiter(API_LIMIT_PER_MINUTE)
+    
+    API_KEY = "28167e861b5b17b41ef6f9e4ab183790ae37b8df75697bbb95212edde98e215d"
+    CLIENT = AsyncOpenAQ(api_key=API_KEY)
+    
     @task(multiple_outputs=True)    
     def initial_setup():
-        API_KEY = "28167e861b5b17b41ef6f9e4ab183790ae37b8df75697bbb95212edde98e215d"
         COUNTRY_IDS = [132, 110, 103, 80, 75, 65, 131, 62, 74, 97, 104] #ids of all the balkan countries
         BATCH_SIZE = 5
         LIMIT = 1000
         MAX_RETRY = 3
-        API_LIMIT_PER_MINUTE = 60
         SAVE_PATH = "data/raw/"
-        RATE_LIMITER = RateLimiter(API_LIMIT_PER_MINUTE)
 
-        CLIENT = AsyncOpenAQ(api_key=API_KEY)
-
-        return {"COUNTRY_IDS": COUNTRY_IDS, "BATCH_SIZE": BATCH_SIZE, "LIMIT": LIMIT, "MAX_RETRY": MAX_RETRY, "SAVE_PATH": SAVE_PATH, "RATE_LIMITER": RATE_LIMITER, "CLIENT": CLIENT}
+        return {"COUNTRY_IDS": COUNTRY_IDS, "BATCH_SIZE": BATCH_SIZE, "LIMIT": LIMIT, "MAX_RETRY": MAX_RETRY, "SAVE_PATH": SAVE_PATH}
 
     @task()
-    def fetch_location(SAVE_PATH, CLIENT, RATE_LIMITER, MAX_RETRY, BATCH_SIZE, COUNTRY_IDS):
+    def fetch_location(SAVE_PATH,  MAX_RETRY, BATCH_SIZE, COUNTRY_IDS,CLIENT=CLIENT, RATE_LIMITER=RATE_LIMITER):
         location_ids = []
         asyncio.run(fetch_paged_data_and_save(SAVE_PATH + "location/new", "location", RATE_LIMITER, MAX_RETRY, fetch_and_save_ids, api_call=CLIENT.locations.list, id_list=location_ids, batch_size=BATCH_SIZE, countries_id=COUNTRY_IDS))
         return location_ids
 
     @task()
-    def fetch_parameter(SAVE_PATH, CLIENT, RATE_LIMITER, MAX_RETRY, BATCH_SIZE):
+    def fetch_parameter(SAVE_PATH,  MAX_RETRY, BATCH_SIZE,CLIENT=CLIENT, RATE_LIMITER=RATE_LIMITER):
         asyncio.run(fetch_paged_data_and_save(SAVE_PATH + "country/new", "country", RATE_LIMITER, MAX_RETRY, CLIENT.countries.list, batch_size=BATCH_SIZE))
 
     @task()
-    def fetch_country(SAVE_PATH, CLIENT, RATE_LIMITER, MAX_RETRY, BATCH_SIZE):
+    def fetch_country(SAVE_PATH,  MAX_RETRY, BATCH_SIZE,CLIENT=CLIENT, RATE_LIMITER=RATE_LIMITER):
         asyncio.run(fetch_paged_data_and_save(SAVE_PATH + "parameter/new", "parameter", RATE_LIMITER, MAX_RETRY, CLIENT.parameters.list, batch_size=BATCH_SIZE))
 
     @task()
-    def fetch_sensor(SAVE_PATH, CLIENT, RATE_LIMITER, MAX_RETRY, BATCH_SIZE, location_ids):
+    def fetch_sensor(SAVE_PATH,  MAX_RETRY, BATCH_SIZE, location_ids,CLIENT=CLIENT, RATE_LIMITER=RATE_LIMITER):
         sensor_ids = []
 
         tasks = []
         for locations_id in location_ids:
             tasks.append(fetch_data_and_save(SAVE_PATH + "sensor/new", "sensor", RATE_LIMITER, MAX_RETRY, fetch_and_save_ids, api_call=CLIENT.locations.sensors, id_list=sensor_ids, locations_id=locations_id))
 
-        asyncio.run(asyncio.gather(*tasks))
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asyncio.gather(*tasks))
 
         return sensor_ids
 
     @task()
-    def fetch_measurement(SAVE_PATH, CLIENT, RATE_LIMITER, MAX_RETRY, BATCH_SIZE, sensor_ids):
+    def fetch_measurement(SAVE_PATH,  MAX_RETRY, BATCH_SIZE, sensor_ids,CLIENT=CLIENT, RATE_LIMITER=RATE_LIMITER):
         last_extraction_timestamp_file_path = Path(SAVE_PATH + "last_extraction_timestamp.txt")
         if Path.exists(last_extraction_timestamp_file_path):
             with open(last_extraction_timestamp_file_path, "r") as file:
@@ -204,7 +206,8 @@ def openaq_daily():
         for sensors_id in sensor_ids:
             tasks.append(fetch_paged_data_and_save(SAVE_PATH + "measurement/new", "measurement", RATE_LIMITER, MAX_RETRY, CLIENT.measurements.list, sensors_id=sensors_id, datetime_from=datetime_from, datetime_to=datetime_to))
 
-        asyncio.run(asyncio.gather(*tasks))
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asyncio.gather(*tasks))
 
         with open(last_extraction_timestamp_file_path, "w") as file:
             file.write(datetime_to)
@@ -216,7 +219,7 @@ def openaq_daily():
     @task()
     def create_dwh():
         dwh_path = Path("../data/warehouse.db")
-        if !Path.exists(dwh_path):
+        if not Path.exists(dwh_path):
             parent = Path('../data/')  
             parent.mkdir(exist_ok=True)
 
@@ -233,11 +236,11 @@ def openaq_daily():
         return "cd ../data/raw && mv location/new/* location/ && mv parameter/new/* parameter/ && mv country/new/* country/ && mv sensor/new/* sensor/ && mv measurement/new/* measurement/"
 
     global_vars = initial_setup()
-    location_ids = fetch_location(global_vars["SAVE_PATH"], global_vars["CLIENT"], global_vars["RATE_LIMITER"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"], global_vars["COUNTRY_IDS"])
-    fetch_parameter = fetch_parameter(global_vars["SAVE_PATH"], global_vars["CLIENT"], global_vars["RATE_LIMITER"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"])
-    fetch_country = fetch_country(global_vars["SAVE_PATH"], global_vars["CLIENT"], global_vars["RATE_LIMITER"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"])
-    sensor_ids = fetch_sensor(global_vars["SAVE_PATH"], global_vars["CLIENT"], global_vars["RATE_LIMITER"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"], location_ids)
-    fetch_measurement = fetch_measurement(global_vars["SAVE_PATH"], global_vars["CLIENT"], global_vars["RATE_LIMITER"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"], sensor_ids)
+    location_ids = fetch_location(global_vars["SAVE_PATH"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"], global_vars["COUNTRY_IDS"])
+    fetch_parameter = fetch_parameter(global_vars["SAVE_PATH"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"])
+    fetch_country = fetch_country(global_vars["SAVE_PATH"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"])
+    sensor_ids = fetch_sensor(global_vars["SAVE_PATH"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"], location_ids)
+    fetch_measurement = fetch_measurement(global_vars["SAVE_PATH"], global_vars["MAX_RETRY"], global_vars["BATCH_SIZE"], sensor_ids)
     close_connection = close_connection()
 
     create_dwh = create_dwh()
