@@ -14,9 +14,8 @@ from airflow.sdk import dag, task
 API_LIMIT_PER_MINUTE = 60
 
 API_KEY = "28167e861b5b17b41ef6f9e4ab183790ae37b8df75697bbb95212edde98e215d"
-CLIENT = AsyncOpenAQ(api_key=API_KEY)
 
-COUNTRY_IDS = [132, 110, 103, 80, 75, 65, 131, 62, 74, 97, 104] #ids of all the balkan countries
+COUNTRY_IDS = [132, 110, 103, 80, 75, 65, 131, 62, 74, 97, 104] # openaq's ids of all the balkan countries
 BATCH_SIZE = 5
 LIMIT = 1000
 MAX_RETRY = 3
@@ -142,10 +141,18 @@ async def execute_with_retry(async_func, *args, **kwargs):
                 retry_count += 1
             else:
                 raise err
-   
-async def fetch_and_save_ids(api_call, id_list, *args, **kwargs):
+
+def compare_dates(datetime_from):
+    def compare_(x):
+        if x.datetime_last is not None:
+            return pendulum.parse(x.datetime_last.utc) > datetime_from
+        else:
+            return False
+    return compare_
+
+async def fetch_and_save_ids(api_call, id_list, datetime_from, *args, **kwargs):
     response = await api_call(*args, **kwargs)
-    id_list.extend(map(lambda x: x.id, response.results))
+    id_list.extend(map(lambda x: x.id, filter(compare_dates(datetime_from), response.results)))
     return response
 
 @dag(
@@ -158,56 +165,99 @@ async def fetch_and_save_ids(api_call, id_list, *args, **kwargs):
 def openaq_daily():
     @task()
     def fetch_location():
-        location_ids = []
-        asyncio.run(fetch_paged_data_and_save(SAVE_PATH + "location/new", "location", fetch_and_save_ids, api_call=CLIENT.locations.list, id_list=location_ids, batch_size=BATCH_SIZE, countries_id=COUNTRY_IDS))
-        return location_ids
+        async def fetch_location_():
+            client = AsyncOpenAQ(api_key=API_KEY)
+            
+            last_extraction_timestamp_file_path = Path(SAVE_PATH + "last_extraction_timestamp.txt")
+            if Path.exists(last_extraction_timestamp_file_path):
+                with open(last_extraction_timestamp_file_path, "r") as file:
+                    datetime_from = pendulum.parse(file.read())
+            else:
+                datetime_from = pendulum.now('UTC').subtract(days=7)
+            
+            location_ids = []
+            await fetch_paged_data_and_save(SAVE_PATH + "location/new", "location", fetch_and_save_ids, batch_size=BATCH_SIZE, api_call=client.locations.list, id_list=location_ids, datetime_from=datetime_from, countries_id=COUNTRY_IDS)
+            await client.close()
+            
+            return location_ids
+
+        return asyncio.run(fetch_location_())
 
     @task()
     def fetch_parameter():
-        asyncio.run(fetch_paged_data_and_save(SAVE_PATH + "country/new", "country", CLIENT.countries.list, batch_size=BATCH_SIZE))
+        async def fetch_parameter_():
+            client = AsyncOpenAQ(api_key=API_KEY)
+        
+            await fetch_paged_data_and_save(SAVE_PATH + "country/new", "country", client.countries.list, batch_size=BATCH_SIZE)
+
+            await client.close()
+        
+        asyncio.run(fetch_parameter_())
 
     @task()
     def fetch_country():
-        asyncio.run(fetch_paged_data_and_save(SAVE_PATH + "parameter/new", "parameter", CLIENT.parameters.list, batch_size=BATCH_SIZE))
+        async def fetch_country_():
+            client = AsyncOpenAQ(api_key=API_KEY)
+        
+            await fetch_paged_data_and_save(SAVE_PATH + "parameter/new", "parameter", client.parameters.list, batch_size=BATCH_SIZE)
+        
+            await client.close()
+
+        asyncio.run(fetch_country_())
 
     @task()
     def fetch_sensor(location_ids):
-        sensor_ids = []
+        async def fetch_sensor_(location_ids):
+            client = AsyncOpenAQ(api_key=API_KEY)
+        
+            last_extraction_timestamp_file_path = Path(SAVE_PATH + "last_extraction_timestamp.txt")
+            if Path.exists(last_extraction_timestamp_file_path):
+                with open(last_extraction_timestamp_file_path, "r") as file:
+                    datetime_from = pendulum.parse(file.read())
+            else:
+                datetime_from = pendulum.now('UTC').subtract(days=7)
+        
+            sensor_ids = []
 
-        tasks = []
-        for locations_id in location_ids:
-            tasks.append(fetch_data_and_save(SAVE_PATH + "sensor/new", "sensor", fetch_and_save_ids, api_call=CLIENT.locations.sensors, id_list=sensor_ids, locations_id=locations_id))
+            tasks = []
+            for locations_id in location_ids:
+                tasks.append(fetch_data_and_save(SAVE_PATH + "sensor/new", "sensor", fetch_and_save_ids, api_call=client.locations.sensors, id_list=sensor_ids, datetime_from=datetime_from, locations_id=locations_id))
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(asyncio.gather(*tasks))
+            await asyncio.gather(*tasks)
 
-        return sensor_ids
+            await client.close()
+        
+            return sensor_ids
+
+        return asyncio.run(fetch_sensor_(location_ids))
 
     @task()
     def fetch_measurement(sensor_ids):
-        datetime_to = pendulum.now('UTC')
-        
-        last_extraction_timestamp_file_path = Path(SAVE_PATH + "last_extraction_timestamp.txt")
-        if Path.exists(last_extraction_timestamp_file_path):
-            with open(last_extraction_timestamp_file_path, "r") as file:
-                datetime_from = pendulum.parse(file.read())
-        else:
-            datetime_from = datetime_to.subtract(days=7)
+        async def fetch_measurement_(sensor_ids):
+            client = AsyncOpenAQ(api_key=API_KEY)
+            
+            datetime_to = pendulum.now('UTC')
+            
+            last_extraction_timestamp_file_path = Path(SAVE_PATH + "last_extraction_timestamp.txt")
+            if Path.exists(last_extraction_timestamp_file_path):
+                with open(last_extraction_timestamp_file_path, "r") as file:
+                    datetime_from = pendulum.parse(file.read())
+            else:
+                datetime_from = datetime_to.subtract(days=7)
 
 
-        tasks = []
-        for sensors_id in sensor_ids:
-            tasks.append(fetch_paged_data_and_save(SAVE_PATH + "measurement/new", "measurement", CLIENT.measurements.list, sensors_id=sensors_id, datetime_from=datetime_from, datetime_to=datetime_to))
+            tasks = []
+            for sensors_id in sensor_ids:
+                tasks.append(fetch_paged_data_and_save(SAVE_PATH + "measurement/new", "measurement", client.measurements.list, sensors_id=sensors_id, datetime_from=datetime_from, datetime_to=datetime_to))
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(asyncio.gather(*tasks))
+            await asyncio.gather(*tasks)
 
-        with open(last_extraction_timestamp_file_path, "w") as file:
-            file.write(datetime_to.to_atom_string())
+            with open(last_extraction_timestamp_file_path, "w") as file:
+                file.write(datetime_to.to_atom_string())
+                
+            await client.close()
 
-    @task()
-    def close_connection():
-        asyncio.run(CLIENT.close())
+        asyncio.run(fetch_measurement_(sensor_ids))
 
     @task()
     def create_dwh():
@@ -233,14 +283,13 @@ def openaq_daily():
     fetch_country = fetch_country()
     sensor_ids = fetch_sensor(location_ids)
     fetch_measurement = fetch_measurement(sensor_ids)
-    close_connection = close_connection()
 
     create_dwh = create_dwh()
     dbt_run = dbt_run()
     
     archive_files = archive_files()
 
-    [fetch_parameter, fetch_country, fetch_measurement] >> close_connection >> create_dwh >> dbt_run >> archive_files
+    fetch_parameter >> fetch_country >> location_ids >> sensor_ids >> fetch_measurement >> create_dwh >> dbt_run >> archive_files
 
 openaq_daily()
 
