@@ -23,7 +23,7 @@ SAVE_PATH = "data/raw/"
 
 class RateLimiter:
     semaphore = aiologic.Semaphore(API_LIMIT_PER_MINUTE)
-    list = [0]*API_LIMIT_PER_MINUTE
+    list = [time.time()]*API_LIMIT_PER_MINUTE
     lock = aiologic.Lock()
 
     async def acquire(amount=1):
@@ -144,10 +144,14 @@ async def execute_with_retry(async_func, *args, **kwargs):
 
 def compare_dates(datetime_from):
     def compare_(x):
-        if x.datetime_last is not None:
-            return pendulum.parse(x.datetime_last.utc) > datetime_from
+        if type(x.datetime_last) == dict:
+            if x.datetime_last is not None:
+                return pendulum.parse(x.datetime_last['utc']) > datetime_from
+            else:
+                return False
         else:
-            return False
+            return pendulum.parse(x.datetime_last.utc) > datetime_from
+
     return compare_
 
 async def fetch_and_save_ids(api_call, id_list, datetime_from, *args, **kwargs):
