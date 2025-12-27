@@ -139,8 +139,9 @@ async def execute_with_retry(async_func, *args, **kwargs):
             RateLimiter.release()
             if retry_count < MAX_RETRY:
                 retry_count += 1
+                await asyncio.sleep(120*retry_count)
             else:
-                LOG.exception("A task " + async_func.__name__ + "(" + str(args) + "," + str(kwargs) + ")" + " has failed " + str(MAX_RETRY + 1) + " times. Code: " + err.status_code + " Error message: " + err.message + "\n")
+                LOG.exception("A task " + async_func.__name__ + "(args = " + str(args) + ", kwargs = " + str(kwargs) + ")" + " has failed " + str(MAX_RETRY + 1) + " times. Code: " + err.status_code + " Error message: " + err.message + "\n")
                 return None
 
 def compare_dates(datetime_from):

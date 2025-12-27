@@ -36,8 +36,13 @@ Linux/macOS
     CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
     pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
     airflow db migrate
-    airflow api-server --port 8080
+    (airflow dag-processor&) && (airflow scheduler&) && (airflow triggerer&) && (airflow api-server --port 8080&)  
 ```
+    Shutting down airflow
+```
+    pkill airflow   
+```
+
 
 Windows  
 ```
@@ -46,17 +51,8 @@ Windows
 
 After this you can access airflow by visiting http://localhost:8080/
 
-You can run individual scripts using 
-```
-    python3 scripts/script_name.py  
-```
-
 
 **Project Status**
 
-Current Phase: Transformations with dbt  
-Next Phase: Scheduling with Airflow  
-
-
-Note: This project is actively being developed as a learning exercise. The codebase will evolve as features are implemented.
-
+Current Phase: Gold layer models  
+Next Phase: Visualisations  
