@@ -4,9 +4,6 @@ select
 	id,
         code,
  	name,
-	datetime_first,
-	datetime_last,
-       	parameters,
 	current_timestamp as dbt_load_timestamp
 
 from {{ ref('silver_country') }}
