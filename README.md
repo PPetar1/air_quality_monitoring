@@ -25,7 +25,7 @@ Clone the project with
    git clone https://github.com/PPetar1/air_quality_monitoring
 ```
 
-Linux/macOS
+*Linux/macOS*
 ```
     python3 -m venv .venv
     source .venv/bin/activate 
@@ -38,7 +38,9 @@ Linux/macOS
     airflow db migrate
     (airflow dag-processor&) && (airflow scheduler&) && (airflow triggerer&) && (airflow api-server --port 8080&)  
 ```
-    Shutting down airflow
+
+Shutting down airflow
+
 ```
     pkill airflow   
 ```
