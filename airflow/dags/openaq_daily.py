@@ -5,11 +5,13 @@ import pandas as pd
 import time
 from pathlib import Path
 import os
-import sys
 import aiologic
 import duckdb
+import logging
 
 from airflow.sdk import dag, task
+
+LOG = logging.getLogger()
 
 API_LIMIT_PER_MINUTE = 60
 
@@ -65,10 +67,9 @@ def save_data(df, output_dir, prefix="", suffix=""):
 async def fetch_data_and_save(output_dir, job_name, async_func, *args, **kwargs):
     await RateLimiter.acquire()
     
-    try:
-        response = await execute_with_retry(async_func, *args, **kwargs) 
-    except Exception as err:
-        sys.stderr.write("A task has failed " + str(MAX_RETRY + 1) + " times. Error message: " + str(err) + "\n") #TODO: Logging
+    response = await execute_with_retry(async_func, *args, **kwargs)
+    
+    if response == None:
         return
 
     RateLimiter.release()
@@ -102,10 +103,9 @@ async def fetch_paged_data_and_save(output_dir, job_name, async_func, batch_size
         error_count = 0
 
         async for task in asyncio.as_completed(tasks):
-            try:
-                response = task.result() 
-            except Exception as err:
-                sys.stderr.write("A task has failed " + str(MAX_RETRY + 1) + " times. Error message: " + str(err) + "\n") #TODO: Logging
+            response = task.result() 
+            
+            if response == None:
                 error_count += 1
                 continue
                 
@@ -140,7 +140,8 @@ async def execute_with_retry(async_func, *args, **kwargs):
             if retry_count < MAX_RETRY:
                 retry_count += 1
             else:
-                raise err
+                LOG.exception("A task " + async_func.__name__ + "(" + str(args) + "," + str(kwargs) + ")" + " has failed " + str(MAX_RETRY + 1) + " times. Code: " + err.status_code + " Error message: " + err.message + "\n")
+                return None
 
 def compare_dates(datetime_from):
     def compare_(x):
@@ -298,5 +299,4 @@ def openaq_daily():
 openaq_daily()
 
 # TODO: 
-#       logging,
 #       documentation
