@@ -42,7 +42,7 @@ class RateLimiter:
     async def acquire(amount=1):
         async with RateLimiter.lock:
             for _ in range(amount):
-                await RateLimiter.semaphore.async_acquire()
+                await RateLimiter.semaphore.acquire()
                 last_request = RateLimiter.list.pop(0)
 
             time_to_wait = last_request + 60 - time.time()
