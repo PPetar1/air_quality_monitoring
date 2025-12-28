@@ -28,8 +28,7 @@ select
 	current_timestamp as dbt_load_timestamp
 
 from '../data/raw/measurement/**/*.parquet'
-
-{% else %}
+{% elif files_exist('../data/raw/measurement/new/*.parquet') %}
 
     select
         value,
@@ -59,9 +58,39 @@ from '../data/raw/measurement/**/*.parquet'
     from '../data/raw/measurement/new/*.parquet'
     where
         extraction_timestamp
-        >= (
+        > (
             select coalesce(max(dbt_load_timestamp), '1900-01-01')
             from {{ this }}
         )
+
+{% else %}
+
+    select
+        value,
+        period_label,
+        period_interval,
+        period_datetime_from_utc,
+        period_datetime_from_local,
+        period_datetime_to_utc,
+        period_datetime_to_local,
+        parameter_id,
+        parameter_name,
+        parameter_units,
+        parameter_display_name,
+        coverage_expected_count,
+        coverage_expected_interval,
+        coverage_observed_count,
+        coverage_observed_interval,
+        coverage_percent_complete,
+        coverage_percent_coverage,
+        coverage_datetime_from_utc,
+        coverage_datetime_from_local,
+        coverage_datetime_to_utc,
+        coverage_datetime_to_local,
+        sensor_id,
+        current_timestamp as dbt_load_timestamp
+
+    from {{ this }}
+    where 1 = 0
 
 {% endif %}

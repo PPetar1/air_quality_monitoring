@@ -13,7 +13,7 @@ select
 
 from '../data/raw/country/**/*.parquet'
 
-{% else %}
+{% elif files_exist('../data/raw/country/new/*.parquet') %}
 
     select
         id,
@@ -27,9 +27,22 @@ from '../data/raw/country/**/*.parquet'
     from '../data/raw/country/new/*.parquet'
     where
         extraction_timestamp
-        >= (
+        > (
             select coalesce(max(dbt_load_timestamp), '1900-01-01')
             from {{ this }}
         )
+
+{% else %}
+
+    select
+        id,
+        code,
+        name,
+        datetime_first,
+        datetime_last,
+        parameters,
+        current_timestamp as dbt_load_timestamp
+    from {{ this }}
+    where 1 = 0
 
 {% endif %}

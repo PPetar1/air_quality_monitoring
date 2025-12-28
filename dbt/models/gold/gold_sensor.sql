@@ -26,7 +26,7 @@ from {{ ref('silver_sensor') }}
 
     where
         dbt_load_timestamp
-        = (
+        > (
             select coalesce(max(dbt_load_timestamp), '1900-01-01')
             from {{ this }}
         )
