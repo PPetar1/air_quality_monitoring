@@ -15,16 +15,21 @@ from '../data/raw/country/**/*.parquet'
 
 {% else %}
 
-select 
-	id,
+    select
+        id,
         code,
- 	name,
-	datetime_first,
-	datetime_last,
-       	parameters,
-	current_timestamp as dbt_load_timestamp
+        name,
+        datetime_first,
+        datetime_last,
+        parameters,
+        current_timestamp as dbt_load_timestamp
 
-from '../data/raw/country/new/*.parquet'
-where extraction_timestamp >= (select coalesce(max(dbt_load_timestamp), '1900-01-01') from {{ this }})
+    from '../data/raw/country/new/*.parquet'
+    where
+        extraction_timestamp
+        >= (
+            select coalesce(max(dbt_load_timestamp), '1900-01-01')
+            from {{ this }}
+        )
 
 {% endif %}
