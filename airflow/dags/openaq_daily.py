@@ -240,9 +240,9 @@ def openaq_daily():
             client = AsyncOpenAQ(api_key=API_KEY)
 
             await fetch_paged_data_and_save(
-                SAVE_PATH + "country/new",
-                "country",
-                client.countries.list,
+                SAVE_PATH + "parameter/new",
+                "parameter",
+                client.parameters.list,
                 batch_size=BATCH_SIZE,
             )
 
@@ -256,9 +256,9 @@ def openaq_daily():
             client = AsyncOpenAQ(api_key=API_KEY)
 
             await fetch_paged_data_and_save(
-                SAVE_PATH + "parameter/new",
-                "parameter",
-                client.parameters.list,
+                SAVE_PATH + "country/new",
+                "country",
+                client.countries.list,
                 batch_size=BATCH_SIZE,
             )
 
