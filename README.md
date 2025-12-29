@@ -39,13 +39,6 @@ Clone the project with
     (airflow dag-processor&) && (airflow scheduler&) && (airflow triggerer&) && (airflow api-server --port 8080&)  
 ```
 
-Shutting down airflow
-
-```
-    pkill airflow   
-```
-
-
 Windows  
 ```
     TODO  
@@ -56,5 +49,5 @@ After this you can access airflow by visiting http://localhost:8080/
 
 **Project Status**
 
-Current Phase: Gold layer models  
-Next Phase: Visualisations  
+Current Phase: Visualisations    
+Next Phase: Documentation & Testing   
