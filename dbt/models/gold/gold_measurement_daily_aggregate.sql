@@ -27,6 +27,8 @@ select
     m.parameter_id,
     isodow(m.measurement_date) as day_of_week,
     avg(m.value) as daily_average,
+    min(m.value) as daily_minimum,
+    max(m.value) as daily_maximum,
     count(*) as number_of_measurements,
     current_timestamp as dbt_load_timestamp
 from measurement_cte as m
