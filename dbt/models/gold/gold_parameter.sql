@@ -4,7 +4,7 @@ select
     id,
     name,
     units,
-    display_name,
+    coalesce(display_name, name) as display_name,
     description,
     current_timestamp as dbt_load_timestamp
 
