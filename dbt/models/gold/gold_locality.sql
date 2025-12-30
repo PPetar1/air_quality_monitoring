@@ -3,8 +3,8 @@
 select
     l.country_id,
     min(l.id) as id,
-    coalesce(l.locality, l.name) as name,
-    concat(coalesce(l.locality, l.name), ', ', c.code) as display_name,
+    trim(coalesce(l.locality, l.name)) as name,
+    concat(trim(coalesce(l.locality, l.name)), ', ', c.code) as display_name,
     avg(l.coordinates_latitude) as coordinates_latitude,
     avg(l.coordinates_longitude) as coordinates_longitude,
     min(l.datetime_first_utc) as datetime_first_utc,
@@ -25,4 +25,4 @@ left join {{ ref('silver_country') }} as c on l.country_id = c.id
 
 {% endif %}
 
-group by coalesce(l.locality, l.name), l.country_id, c.code
+group by trim(coalesce(l.locality, l.name)), l.country_id, c.code

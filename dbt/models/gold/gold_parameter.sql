@@ -5,7 +5,7 @@ select
     p.name,
     p.units,
     p.description,
-    coalesce(p.display_name, p.name) as display_name,
+    coalesce(p.description, p.display_name, p.name) as display_name,
     current_timestamp as dbt_load_timestamp
 
 from {{ ref('silver_parameter') }} as p

@@ -10,7 +10,9 @@ select
     coordinates_longitude,
     datetime_first_utc,
     datetime_last_utc,
-    min(id) over (partition by coalesce(locality, name)) as locality_id,
+    min(id)
+        over (partition by trim(coalesce(locality, name)), country_id)
+        as locality_id,
     current_timestamp as dbt_load_timestamp
 
 from {{ ref('silver_location') }}
