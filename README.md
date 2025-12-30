@@ -9,11 +9,11 @@ This is a learning portfolio project that implements a complete data pipeline fr
 
 *Real data:* Live air quality metrics from the OpenAQ API
 
-*Modern stack:* Python, Airflow, dbt, Grafana?  
+*Modern stack:* **Python, Airflow, dbt, Metabase**    
 
-*Production patterns:* Incremental loads, data quality checks  
+*Production patterns:* Incremental loads, data quality checks, asynchronous extraction    
 
-*Free tools:* Everything runs locally or on free cloud tiers  
+*Free tools:* Everything runs locally using open source tools  
 
 
 **Installation**  
@@ -36,7 +36,7 @@ Clone the project with
     CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
     pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
     airflow db migrate
-    (airflow dag-processor&) && (airflow scheduler&) && (airflow triggerer&) && (airflow api-server --port 8080&)  
+    (airflow dag-processor&) && (airflow scheduler&) && (airflow triggerer&) && (airflow api-server --port 8090&)  
 ```
 
 Windows  
@@ -44,7 +44,7 @@ Windows
     TODO  
 ```
 
-After this you can access airflow by visiting http://localhost:8080/
+After this you can access airflow by visiting http://localhost:8090/
 
 
 **Project Status**
