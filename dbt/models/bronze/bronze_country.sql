@@ -12,7 +12,7 @@ select
 	current_timestamp as dbt_load_timestamp
 
 from '../data/raw/country/**/*.parquet'
-
+where (id, extraction_timestamp) in (select id, max(extraction_timestamp) from '../data/raw/country/**/*.parquet' group by id)
 {% elif files_exist('../data/raw/country/new/*.parquet') %}
 
     select

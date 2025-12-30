@@ -2,7 +2,7 @@
 
 {% if not is_incremental() %}
 
-select 
+select distinct 
 	id,
 	name,
 	"parameter.id" as parameter_id,
@@ -41,6 +41,7 @@ select
 	current_timestamp as dbt_load_timestamp
 
 from read_parquet('../data/raw/sensor/**/*.parquet', union_by_name=true) 
+where (id, extraction_timestamp) in (select id, max(extraction_timestamp) from read_parquet('../data/raw/sensor/**/*.parquet', union_by_name=true) group by id)
 
 {% elif files_exist('../data/raw/sensor/new/*.parquet') %}
 

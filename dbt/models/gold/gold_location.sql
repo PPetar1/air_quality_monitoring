@@ -3,15 +3,14 @@
 select
     id,
     name,
-    locality,
     instruments,
-    country_id,
     owner_name,
     provider_name,
     coordinates_latitude,
     coordinates_longitude,
     datetime_first_utc,
     datetime_last_utc,
+    min(id) over (partition by coalesce(locality, name)) as locality_id,
     current_timestamp as dbt_load_timestamp
 
 from {{ ref('silver_location') }}

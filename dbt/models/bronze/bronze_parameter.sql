@@ -11,6 +11,7 @@ select
 	current_timestamp as dbt_load_timestamp
 
 from '../data/raw/parameter/**/*.parquet'
+where (id, extraction_timestamp) in (select id, max(extraction_timestamp) from '../data/raw/parameter/**/*.parquet' group by id)
 
 {% elif files_exist('../data/raw/parameter/new/*.parquet') %}
 

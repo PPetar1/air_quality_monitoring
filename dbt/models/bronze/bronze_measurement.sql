@@ -28,6 +28,7 @@ select
 	current_timestamp as dbt_load_timestamp
 
 from '../data/raw/measurement/**/*.parquet'
+where (sensor_id, parameter_id, period_datetime_from_utc, period_datetime_to_utc, extraction_timestamp) in (select sensor_id, "parameter.id", "period.datetime_from.utc", "period.datetime_to.utc", max(extraction_timestamp)  from '../data/raw/measurement/**/*.parquet' group by sensor_id, "parameter.id", "period.datetime_from.utc", "period.datetime_to.utc")
 {% elif files_exist('../data/raw/measurement/new/*.parquet') %}
 
     select
