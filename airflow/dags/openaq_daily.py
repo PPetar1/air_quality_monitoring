@@ -13,7 +13,7 @@ LOG = logging.getLogger()
 
 API_LIMIT_PER_MINUTE = 60
 
-API_KEY = "28167e861b5b17b41ef6f9e4ab183790ae37b8df75697bbb95212edde98e215d"
+API_KEY = "b79228d202aabb8f23234309f91aaac63b69591b974870dfb7d37128df3ebfbc"
 
 COUNTRY_IDS = [
     132,
@@ -343,12 +343,25 @@ def openaq_daily():
         asyncio.run(fetch_measurement_(sensor_ids))
 
     @task.bash()
-    def dbt_run():
-        return "cd $AIRFLOW_HOME/../dbt && dbt run"
+    def dbt_run_bronze():
+        return "cd $AIRFLOW_HOME/../dbt && dbt run --select bronze"
+    
+    @task.bash()
+    def dbt_run_silver():
+        return "cd $AIRFLOW_HOME/../dbt && dbt run --select silver"
+
+    @task.bash()
+    def dbt_run_gold():
+        return "cd $AIRFLOW_HOME/../dbt && dbt run --select gold"
+
 
     @task.bash()
     def archive_files():
         return "cd $AIRFLOW_HOME/../data/raw && mv location/new/* location/ && mv parameter/new/* parameter/ && mv country/new/* country/ && mv sensor/new/* sensor/ && mv measurement/new/* measurement/"
+    
+    @task.bash()
+    def dbt_test():
+        return "cd $AIRFLOW_HOME/../dbt && dbt test"
 
     location_ids = fetch_location()
     fetch_parameter = fetch_parameter()
@@ -356,18 +369,24 @@ def openaq_daily():
     sensor_ids = fetch_sensor(location_ids)
     fetch_measurement = fetch_measurement(sensor_ids)
 
-    dbt_run = dbt_run()
+    dbt_run_bronze = dbt_run_bronze()
+    dbt_run_silver = dbt_run_silver()
+    dbt_run_gold = dbt_run_gold()
 
     archive_files = archive_files()
 
+    dbt_test = dbt_test()
     (
         fetch_parameter
         >> fetch_country
         >> location_ids
         >> sensor_ids
         >> fetch_measurement
-        >> dbt_run
+        >> dbt_run_bronze
+        >> dbt_run_silver
+        >> dbt_run_gold
         >> archive_files
+        >> dbt_test
     )
 
 
