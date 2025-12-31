@@ -31,7 +31,7 @@ Requires python >3.13 and docker to be installed on your machine https://www.gee
 To stop the processes after use
 
 ```
-    ./stop_linux.sh
+    ./stop.sh
 ```
 
 Or install everything manually:
