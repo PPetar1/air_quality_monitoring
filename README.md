@@ -1,4 +1,3 @@
-🌍 
 # Air Quality Data Pipeline
 
 A hands-on data engineering project that demonstrates modern ETL/ELT pipelines using [openaq](https://openaq.org/). Built to showcase data engineering skills with a production-ready stack using entirely free and open-source tools.
@@ -25,6 +24,22 @@ Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.
 ```
     git clone https://github.com/PPetar1/air_quality_monitoring
     cd air_quality_monitoring
+    chmod +x install_linux.sh
+    chmod +x stop_linux.sh
+    ./install_linux.sh
+```
+
+To stop the processes after use
+
+```
+    ./stop_linux.sh
+```
+
+Or install everything manually:
+
+```
+    git clone https://github.com/PPetar1/air_quality_monitoring
+    cd air_quality_monitoring
     python3 -m venv .venv
     source .venv/bin/activate 
     pip install -r requirements.txt  
@@ -43,7 +58,7 @@ Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.
     airflow api-server --port 8090 & echo $! >> airflow_pids.txt
 ```
 
-To stop the processes after use  
+To stop the processes  
 
 ```
     docker stop metabase
