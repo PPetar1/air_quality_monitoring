@@ -1,9 +1,9 @@
-🌍 **Air Quality Data Pipeline**
+#🌍 **Air Quality Data Pipeline**
 
 A hands-on data engineering project that demonstrates modern ETL/ELT pipelines using [openaq](https://openaq.org/). Built to showcase data engineering skills with a production-ready stack using entirely free and open-source tools.
 
 
-**What This Project Is**
+#**What This Project Is**
 
 This is a learning portfolio project that implements a complete data pipeline from extraction to visualization, simulating real-world data engineering scenarios. It focuses on:
 
@@ -16,17 +16,14 @@ This is a learning portfolio project that implements a complete data pipeline fr
 *Free tools:* Everything runs locally using open source tools  
 
 
-**Installation**  
+#**Installation**  
 
 Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.org/python/download-and-install-python-3-latest-version/  
 
-Clone the project with
-``` 
-   git clone https://github.com/PPetar1/air_quality_monitoring
-```
-
 *Linux/macOS*
 ```
+    git clone https://github.com/PPetar1/air_quality_monitoring
+    cd air_quality_monitoring
     python3 -m venv .venv
     source .venv/bin/activate 
     pip install -r requirements.txt  
@@ -36,18 +33,34 @@ Clone the project with
     CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
     pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
     airflow db migrate
-    (airflow dag-processor&) && (airflow scheduler&) && (airflow triggerer&) && (airflow api-server --port 8090&)  
+    cd metabase
+    docker build -t metabase-duckdb:latest .
+    docker run -d -p 3000:3000 -v $(pwd):/metabase-data  -v $(pwd)/../data:/data -e MB_PLUGINS_DIR=/plugins -e "MB_DB_FILE=/metabase-data/metabase.db" --name metabase metabase-duckdb:latest
+    airflow dag-processor & pid1=$!
+    airflow scheduler & pid2=$!
+    airflow triggerer & pid3=$!
+    airflow api-server --port 8090 & pid4=$!
+    echo "$pid1" > pids.txt
+    echo "$pid2" >> pids.txt
+    echo "$pid3" >> pids.txt
+    echo "$pid4" >> pids.txt
 ```
 
-Windows  
+To stop the processes after use
+```
+    docker stop metabase
+    xargs kill < pids.txt
+```
+
+
+*Windows*  
 ```
     TODO  
 ```
 
-After this you can access airflow by visiting http://localhost:8090/
+After this you can access metabase by visiting http://localhost:3000 and airflow by visiting http://localhost:8090   
 
 
-**Project Status**
+#**Project Status**
 
-Current Phase: Visualisations    
-Next Phase: Documentation & Testing   
+Current Phase: Documentation & Testing   
