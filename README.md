@@ -15,6 +15,11 @@ This is a learning portfolio project that implements a complete data pipeline fr
 
 *Free tools:* Everything runs locally using open source tools  
 
+## Scheduling with airflow
+![](https://github.com/PPetar1/air_quality_monitoring/blob/main/demos/airflow_demo.gif)
+
+## Visualisation in metabase
+![](https://github.com/PPetar1/air_quality_monitoring/blob/main/demos/metabase_demo.gif)
 
 # Installation 
 You can download and build the project on your machine using the instructions below
