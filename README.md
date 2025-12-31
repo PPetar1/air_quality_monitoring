@@ -1,9 +1,10 @@
-#🌍 **Air Quality Data Pipeline**
+🌍 
+# Air Quality Data Pipeline
 
 A hands-on data engineering project that demonstrates modern ETL/ELT pipelines using [openaq](https://openaq.org/). Built to showcase data engineering skills with a production-ready stack using entirely free and open-source tools.
 
 
-#**What This Project Is**
+# What This Project Is
 
 This is a learning portfolio project that implements a complete data pipeline from extraction to visualization, simulating real-world data engineering scenarios. It focuses on:
 
@@ -16,11 +17,11 @@ This is a learning portfolio project that implements a complete data pipeline fr
 *Free tools:* Everything runs locally using open source tools  
 
 
-#**Installation**  
+# Installation 
 
 Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.org/python/download-and-install-python-3-latest-version/  
 
-*Linux/macOS*
+### Linux/macOS
 ```
     git clone https://github.com/PPetar1/air_quality_monitoring
     cd air_quality_monitoring
@@ -46,21 +47,22 @@ Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.
     echo "$pid4" >> pids.txt
 ```
 
-To stop the processes after use
+To stop the processes after use  
+
 ```
     docker stop metabase
     xargs kill < pids.txt
 ```
 
 
-*Windows*  
+### Windows
 ```
     TODO  
 ```
 
-After this you can access metabase by visiting http://localhost:3000 and airflow by visiting http://localhost:8090   
+After this you can access metabase by visiting http://localhost:3000 and airflow by visiting http://localhost:8090 in your web browser  
 
 
-#**Project Status**
+# Project Status
 
 Current Phase: Documentation & Testing   
