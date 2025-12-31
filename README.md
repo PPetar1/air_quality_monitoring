@@ -37,21 +37,17 @@ Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.
     cd metabase
     docker build -t metabase-duckdb:latest .
     docker run -d -p 3000:3000 -v $(pwd):/metabase-data  -v $(pwd)/../data:/data -e MB_PLUGINS_DIR=/plugins -e "MB_DB_FILE=/metabase-data/metabase.db" --name metabase metabase-duckdb:latest
-    airflow dag-processor & pid1=$!
-    airflow scheduler & pid2=$!
-    airflow triggerer & pid3=$!
-    airflow api-server --port 8090 & pid4=$!
-    echo "$pid1" > pids.txt
-    echo "$pid2" >> pids.txt
-    echo "$pid3" >> pids.txt
-    echo "$pid4" >> pids.txt
+    airflow dag-processor & echo $! > airflow_pids.txt
+    airflow scheduler & echo $! >> airflow_pids.txt
+    airflow triggerer & echo $! >> airflow_pids.txt
+    airflow api-server --port 8090 & echo $! >> airflow_pids.txt
 ```
 
 To stop the processes after use  
 
 ```
     docker stop metabase
-    xargs kill < pids.txt
+    while read pid; do [[ $(ps -p $pid -o comm= 2>/dev/null) == "airflow" ]] && kill $pid; done < airflow_pids.txt
 ```
 
 
