@@ -54,6 +54,7 @@ Or install everything manually:
     cd metabase
     docker build -t metabase-duckdb:latest .
     docker run -d -p 3000:3000 -v $(pwd):/metabase-data  -v $(pwd)/../data:/data -e MB_PLUGINS_DIR=/plugins -e "MB_DB_FILE=/metabase-data/metabase.db" --name metabase metabase-duckdb:latest
+    cd ..
     airflow dag-processor & echo $! > airflow_pids.txt
     airflow scheduler & echo $! >> airflow_pids.txt
     airflow triggerer & echo $! >> airflow_pids.txt
