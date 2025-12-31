@@ -25,8 +25,6 @@ Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.
 ```
     git clone https://github.com/PPetar1/air_quality_monitoring
     cd air_quality_monitoring
-    chmod +x install.sh
-    chmod +x stop.sh
     ./install.sh
 ```
 
