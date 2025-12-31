@@ -66,12 +66,6 @@ To stop the processes
     while read pid; do [[ $(ps -p $pid -o comm= 2>/dev/null) == "airflow" ]] && kill $pid; done < airflow_pids.txt
 ```
 
-
-### Windows
-```
-    TODO  
-```
-
 After this you can access metabase by visiting http://localhost:3000 and airflow by visiting http://localhost:8090 in your web browser  
 
 
