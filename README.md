@@ -19,7 +19,7 @@ This is a learning portfolio project that implements a complete data pipeline fr
 # Installation 
 You can download and build the project on your machine using the instructions below
 
-Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.org/python/download-and-install-python-3-latest-version/  
+Requires python >3.13 and docker to be installed on your machine https://www.geeksforgeeks.org/python/download-and-install-python-3-latest-version/  
 
 ### Linux/macOS
 ```
