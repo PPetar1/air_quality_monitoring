@@ -20,7 +20,7 @@ airflow db migrate
 
 cd metabase
 docker build -t metabase-duckdb:latest .
-docker run -d -p 3000:3000 -v $(pwd):/metabase-data  -v $(pwd)/../data:/data -e MB_PLUGINS_DIR=/plugins -e "MB_DB_FILE=/metabase-data/metabase.db" --name metabase metabase-duckdb:latest
+docker run -d -p 3000:3000 -v $(pwd):/metabase-data  -v $(pwd)/../data:/data -e MB_PLUGINS_DIR=/plugins -e "MB_DB_FILE=/metabase-data/metabase.db" --name openaq-metabase metabase-duckdb:latest
 
 cd ..
 

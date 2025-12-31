@@ -53,7 +53,7 @@ Or install everything manually:
     airflow db migrate
     cd metabase
     docker build -t metabase-duckdb:latest .
-    docker run -d -p 3000:3000 -v $(pwd):/metabase-data  -v $(pwd)/../data:/data -e MB_PLUGINS_DIR=/plugins -e "MB_DB_FILE=/metabase-data/metabase.db" --name metabase metabase-duckdb:latest
+    docker run -d -p 3000:3000 -v $(pwd):/metabase-data  -v $(pwd)/../data:/data -e MB_PLUGINS_DIR=/plugins -e "MB_DB_FILE=/metabase-data/metabase.db" --name openaq-metabase metabase-duckdb:latest
     cd ..
     airflow dag-processor & echo $! > airflow_pids.txt
     airflow scheduler & echo $! >> airflow_pids.txt
@@ -64,7 +64,8 @@ Or install everything manually:
 To stop the processes  
 
 ```
-    docker stop metabase
+    docker stop openaq-metabase
+    docker rm openaq-metabase
     while read pid; do [[ $(ps -p $pid -o comm= 2>/dev/null) == "airflow" ]] && kill $pid; done < airflow_pids.txt
 ```
 
