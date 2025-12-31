@@ -25,9 +25,9 @@ Requires python >3.13 to be installed on your machine https://www.geeksforgeeks.
 ```
     git clone https://github.com/PPetar1/air_quality_monitoring
     cd air_quality_monitoring
-    chmod +x install_linux.sh
-    chmod +x stop_linux.sh
-    ./install_linux.sh
+    chmod +x install.sh
+    chmod +x stop.sh
+    ./install.sh
 ```
 
 To stop the processes after use
@@ -49,6 +49,9 @@ Or install everything manually:
     PYTHON_VERSION="$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
     CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
     pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
+    cd dbt
+    dbt run
+    cd ..
     airflow db migrate
     cd metabase
     docker build -t metabase-duckdb:latest .
