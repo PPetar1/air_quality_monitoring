@@ -1,3 +1,32 @@
+"""
+Daily openaq pipeline   
+
+Consists of following tasks:   
+1. fetch_parameter - fetches parameter data from openaq api
+2. fetch_country - fetches country data from openaq api
+3. fetch_location - fetches location data from openaq api and sends the list of locations
+    we are interested in to fetch_sensor
+4. fetch_sensor - fetches sensor data from openaq api for the locations passed by 
+    fetch_location and sends the list of sensors we are interested in to fetch_measurement
+5. fetch_measurement - fetches measurement data from openaq api for the period we are
+    interested in for sensor that are passed to the task by fetch_sensor
+6. dbt_run_bronze - executes dbt bronze models, moving the data from parquet files 
+    to duckDB database located at data/warehouse.db
+7. dbt_run_silver - executes dbt silver models on duckDB database
+8. dbt_run_gold - executes dbt gold models on duckDB database
+9. archive_files - archives the parquet files from table_name/new to table_name
+    dbt will look only at files in table_name/new for all future runs (except initial runs)
+10. dbt_test - runs all the data quality tests    
+
+We are filtering and fetching only data for Balkan countries    
+
+Data for the sensor and measurement is filtered based on last_extraction_timestamp which is saved at data/raw/last_extraction_timestamp.txt. If the file is not found (for example on the initial extraction) the data from the last 7 days is fetched.    
+
+API calls are allowed to fail for maximum of MAX_RETRY times (3), after that the specific call gets skipped which is logged in the task logs    
+
+API we are using has a 60 requests/minute cap, so the extraction jobs are limited by this.    
+"""
+
 import asyncio
 import time
 from pathlib import Path
@@ -199,8 +228,9 @@ async def fetch_and_save_ids(api_call, id_list, datetime_from, *args, **kwargs):
     dag_id="openaq_daily",
     schedule="@daily",
     catchup=False,
+    doc_md=__doc__,
     description="Daily run of openaq pipeline, fetching data from the api and then ingesting it into bronze, silver and gold.",
-    tags=["openaq"],
+    tags=["openaq", "extraction", "dbt", "dbt test"],
 )
 def openaq_daily():
     @task()

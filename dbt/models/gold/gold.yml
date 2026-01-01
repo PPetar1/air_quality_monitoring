@@ -1,0 +1,211 @@
+version: 2
+
+models:
+  - name: gold_country
+    description: >
+     Information about countries - alias: country
+     On gold we filter the countries to just show Balkan ones since they are the only ones we have data for
+    columns:
+      - name: id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: datetime_first
+        description: Datetime of first measurement in specific country   
+      - name: datetime_last
+        description: Datetime of last measurement in specific country   
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime     
+  
+  - name: gold_location
+    description: >
+     Information about locations - alias: location
+     Is different than locality - locations represent one measurment installation
+     that can have multiple sensors. There can be multiple locations in one locality.
+    columns:
+      - name: id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: locality_id
+        description: Foreign key to locality table, extracted from location as min(id) from all the locations in a specific locality
+        tests:
+          - relationships:
+              arguments:
+                to: ref('gold_locality')
+                field: id
+      - name: datetime_first_utc
+        description: UTC datetime of first measurement at specific location
+      - name: datetime_last_utc
+        description: UTC datetime of last measurement at specific location 
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime     
+  
+  - name: gold_measurement
+    description: >
+     Measurement data - alias: measurement
+     One row per measurement interval for a specific sensor
+    columns:
+      - name: sensor_id
+        description: Foreign key to sensor table, shows which sensor did the measurement
+        tests:
+          - relationships:
+              arguments:
+                to: ref('gold_sensor')
+                field: id
+      - name: parameter_id
+        description: Foreign key to parameter table, shows which parameter was measured
+        tests:
+          - relationships:
+              arguments:
+                to: ref('gold_parameter')
+                field: id
+      - name: period_datetime_from_utc
+        description: UTC datetime of when the measurment started
+      - name: period_datetime_to_utc
+        description: UTC datetime of when the measurement ended
+      - name: value
+        description: Measured value in the specific period
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime     
+  
+  - name: gold_parameter
+    description: >
+     Information about parameters - alias: parameter
+     On gold we filter the parameters to show only ones we have data for
+    columns:
+      - name: id
+        description: Primary key
+        tests:
+          - unique
+          - not_null 
+      - name: display_name
+        description: This field is used as name of the parameter in frontend. Formated as coalesce(p.description, p.display_name, p.name)
+      - name: description
+        description: Longer description of the parameter
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime     
+    
+  - name: gold_sensor
+    description: >
+     Information about sensors - alias: sensor
+     There can be multiple sensors in one location.
+    columns:
+      - name: id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: location_id
+        description: Foreign key to location table, shows the location of the sensor
+        tests:
+          - relationships:
+              arguments:
+                to: ref('gold_location')
+                field: id
+      - name: parameter_id
+        description: Foreign key to parameter table, shows the parameter this sensor can measure. Since we filter parameters on gold, this can contain ids not found in parameter table on gold
+      - name: datetime_first_utc
+        description: UTC datetime of first measurement of this sensor
+      - name: datetime_last_utc
+        description: UTC datetime of last measurement of this sensor 
+      - name: latest_value
+        description: Latest measured value of this sensor  
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime    
+  
+  - name: gold_locality
+    description: >
+     Information about localities - alias: locality
+     Represents a locality (city or a town). Custom made based on aggregation of the location table
+    columns:
+      - name: id
+        description: Primary key, extracted from location as min(id) from all the locations in this locality
+        tests:
+          - unique
+          - not_null
+      - name: country_id
+        description: Foreign key to country table
+        tests:
+          - relationships:
+              arguments:
+                to: ref('gold_country')
+                field: id
+      - name: display_name
+        description: This field is used as name of the locality in frontend. Formated as coalesce(display_name, name), country_code
+      - name: datetime_first_utc
+        description: UTC datetime of first measurement at specific locality
+      - name: datetime_last_utc
+        description: UTC datetime of last measurement at specific locality
+      - name: coordinates_latitude
+        description: Average of coordinates_latitude of all locations from this locality
+      - name: coordinates_longitude
+        description: Average of coordinates_longitude of all locations from this locality
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime     
+ 
+  - name: gold_measurement_hourly_aggregate
+    description: >
+      Aggregation of measurement data on hourly period - alias: measurement_hourly_aggregate
+    columns:
+      - name: sensor_id
+        description: Foreign key to sensor table, shows which sensor did the measurement 
+        tests:
+          - relationships:
+              arguments:
+                to: ref('gold_sensor')
+                field: id    
+      - name: parameter_id
+        description: Foreign key to parameter table, shows which parameter was measured
+        tests:
+          - relationships:
+              arguments:
+                to: ref('gold_parameter')
+                field: id
+      - name: date
+        description: Date of the measurement
+      - name: hour
+        description: Hour on which the meassurement was aggregated (00-24). Aggregation period starts at :00
+      - name: day_of_week
+        description: Day of week of the measurement
+      - name: hourly_average
+        description: Average value measured in hourly period
+      - name: hourly_minimum
+        description: Minimum value measured in hourly period
+      - name: hourly_maximum
+        description: Maximum value measured in hourly period
+      - name: number_of_measurements
+        description: Number of measurements on which the data was aggregated
+  
+  - name: gold_measurement_daily_aggregate
+    description: >
+      Aggregation of measurement data on daily period - alias: measurement_daily_aggregate
+    columns:
+      - name: sensor_id
+        description: Foreign key to sensor table, shows which sensor did the measurement 
+        tests:
+          - relationships:
+              arguments:
+                to: ref('gold_sensor')
+                field: id    
+      - name: parameter_id
+        description: Foreign key to parameter table, shows which parameter was measured
+        tests:
+          - relationships:
+              arguments:
+                to: ref('gold_parameter')
+                field: id
+      - name: date
+        description: Date of the measurement
+      - name: day_of_week
+        description: Day of week of the measurement
+      - name: daily_average
+        description: Average value measured in daily period
+      - name: daily_minimum
+        description: Minimum value measured in daily period
+      - name: daily_maximum
+        description: Maximum value measured in daily period
+      - name: number_of_measurements
+        description: Number of measurements on which the data was aggregated

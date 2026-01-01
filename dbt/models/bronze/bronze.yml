@@ -1,0 +1,118 @@
+version: 2
+
+models:
+  - name: bronze_country
+    description: >
+     Information about countries - alias: country
+    columns:
+      - name: id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: datetime_first
+        description: Datetime of first measurement in specific country   
+      - name: datetime_last
+        description: Datetime of last measurement in specific country   
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime     
+  
+  - name: bronze_location
+    description: >
+     Information about locations - alias: location
+     Is different than locality - locations represent one measurment installation
+     that can have multiple sensors. There can be multiple locations in one locality.
+    columns:
+      - name: id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: country_id
+        description: Foreign key to country table
+        tests:
+          - relationships:
+              arguments:
+                to: ref('bronze_country')
+                field: id
+      - name: datetime_first_utc
+        description: UTC datetime of first measurement at specific location
+      - name: datetime_last_utc
+        description: UTC datetime of last measurement at specific location 
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime     
+  
+  - name: bronze_measurement
+    description: >
+     Measurement data - alias: measurement
+     One row per measurement interval for a specific sensor
+    columns:
+      - name: sensor_id
+        description: Foreign key to sensor table, shows which sensor did the measurement
+        tests:
+          - relationships:
+              arguments:
+                to: ref('bronze_sensor')
+                field: id
+      - name: parameter_id
+        description: Foreign key to parameter table, shows which parameter was Measured
+        tests:
+          - relationships:
+              arguments:
+                to: ref('bronze_parameter')
+                field: id
+      - name: period_datetime_from_utc
+        description: UTC datetime of when the measurment started
+      - name: period_datetime_to_utc
+        description: UTC datetime of when the measurement ended
+      - name: value
+        description: Measured value in the specific period
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime     
+  
+  - name: bronze_parameter
+    description: >
+     Information about parameters - alias: parameter
+    columns:
+      - name: id
+        description: Primary key
+        tests:
+          - unique
+          - not_null 
+      - name: description
+        description: Longer description of the parameter
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime     
+    
+  - name: bronze_sensor
+    description: >
+     Information about sensors - alias: sensor
+     There can be multiple sensors in one location.
+    columns:
+      - name: id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: location_id
+        description: Foreign key to location table, shows the location of the sensor
+        tests:
+          - relationships:
+              arguments:
+                to: ref('bronze_location')
+                field: id
+      - name: parameter_id
+        description: Foreign key to parameter table, shows the parameter this sensor can measure
+        tests:
+          - relationships:
+              arguments:
+                to: ref('bronze_parameter')
+                field: id
+      - name: datetime_first_utc
+        description: UTC datetime of first measurement of this sensor
+      - name: datetime_last_utc
+        description: UTC datetime of last measurement of this sensor 
+      - name: latest_value
+        description: Latest measured value of this sensor  
+      - name: dbt_load_timestamp
+        description: Time at which the data was loaded to the database expressed as utc datetime     
