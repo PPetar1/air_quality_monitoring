@@ -78,8 +78,3 @@ To stop the processes
 ```
 
 After this you can access metabase by visiting http://localhost:3000 and airflow by visiting http://localhost:8090 in your web browser  
-
-
-# Project Status
-
-Current Phase: Documentation & Testing   
