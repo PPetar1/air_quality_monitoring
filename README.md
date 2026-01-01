@@ -5,7 +5,7 @@ A hands-on data engineering project that demonstrates modern ELT pipelines using
 
 # What This Project Is
 
-This is a learning portfolio project that implements a complete data pipeline from extraction to visualization, simulating real-world data engineering scenarios. It focuses on:
+This is a portfolio project that implements a complete data pipeline from extraction to visualization, simulating real-world data engineering scenarios. It focuses on:
 
 *Real data:* Live air quality metrics from the OpenAQ API
 
