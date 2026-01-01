@@ -18,10 +18,10 @@ This is a learning portfolio project that implements a complete data pipeline fr
 ## Pipeline overview
 ![](https://github.com/PPetar1/air_quality_monitoring/blob/main/docs/demos/overview_diagram.png)
 
-## Scheduling with airflow
+## Scheduling with Airflow
 ![](https://github.com/PPetar1/air_quality_monitoring/blob/main/docs/demos/airflow_demo.gif)
 
-## Visualisation in metabase
+## Visualisation in Metabase
 ![](https://github.com/PPetar1/air_quality_monitoring/blob/main/docs/demos/metabase_demo.gif)
 
 # Installation 
