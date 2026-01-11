@@ -421,6 +421,3 @@ def openaq_daily():
 
 
 openaq_daily()
-
-# TODO:
-#       documentation
