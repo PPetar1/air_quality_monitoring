@@ -21,6 +21,9 @@ This is a portfolio project that implements a complete data pipeline from extrac
 ## Scheduling with Airflow
 ![](https://github.com/PPetar1/air_quality_monitoring/blob/main/docs/demos/airflow_demo.gif)
 
+## Transformations using dbt  
+![](https://github.com/PPetar1/air_quality_monitoring/blob/main/docs/demos/dbt_demo.gif)  
+
 ## Visualisation in Metabase
 ![](https://github.com/PPetar1/air_quality_monitoring/blob/main/docs/demos/metabase_demo.gif)
 
